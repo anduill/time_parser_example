@@ -1,19 +1,31 @@
 package org.time.parser.example
 
-import scala.util.Try
-import scala.util.matching.Regex
-import scala.util.parsing.combinator._
 import org.scalatest.{FlatSpec, Matchers}
-import org.time.parser.example.TimeParser.{AM, ActualTime, BaseTime, Hour, Minute, PM, TimeMode}
 
 class TimeParserSpec extends FlatSpec with Matchers {
-  "simple service call 1" should "succeed" in {
-    val numberRegexString = "[1-9]"
-    val numberRegex = numberRegexString.r
-    val foundNumber = numberRegex.findFirstIn("11").toList
-    println(s"hello there")
-
+  "time parsing and adding 3 hours and 20 min" should "succeed" in {
     val actualTime = TimeParser.addMinutes("9:13 AM", 200)
-    println(s"Actual Time: $actualTime")
+    val expectedTime = "12:33 PM"
+    actualTime shouldBe expectedTime
+  }
+  "time parsing and adding 0 min" should "succeed" in {
+    val actualTime = TimeParser.addMinutes("9:13 AM", 0)
+    val expectedTime = "9:13 AM"
+    actualTime shouldBe expectedTime
+  }
+  "time parsing with single min digit" should "succeed" in {
+    val actualTime = TimeParser.addMinutes("9:03 AM", 0)
+    val expectedTime = "9:03 AM"
+    actualTime shouldBe expectedTime
+  }
+  "time parsing and adding 24 hours" should "succeed" in {
+    val actualTime = TimeParser.addMinutes("9:13 AM", 1440)
+    val expectedTime = "9:13 AM"
+    actualTime shouldBe expectedTime
+  }
+  "time parsing and adding 12 hours" should "succeed" in {
+    val actualTime = TimeParser.addMinutes("9:13 AM", 720)
+    val expectedTime = "9:13 PM"
+    actualTime shouldBe expectedTime
   }
 }

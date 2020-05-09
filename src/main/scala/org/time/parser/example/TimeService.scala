@@ -7,6 +7,7 @@ import org.http4s.HttpService
 import org.http4s.circe._
 import org.http4s.dsl.impl.Root
 import org.http4s.dsl.io._
+import org.time.parser.example.TimeParser.ActualTime
 
 import scala.util.{Failure, Success}
 
@@ -16,11 +17,11 @@ object TimeService {
   def getTimeService(): HttpService[IO] = {
     HttpService[IO] {
       case req @ GET -> Root / "time" :? TimeStringParam(timeString) :? MinutesIntParam(mins) =>
-        TimeParser.addMinutes(timeString, mins) match {
+        TimeParser.addMinutesToActualTime(timeString, mins) match {
           case Failure(exception) =>
             BadRequest(Json.obj("message" -> exception.getMessage.asJson))
           case Success(value) =>
-            Ok(Json.obj("value" -> value.toString.asJson))
+            Ok(Json.obj("value" -> ActualTime.serialize(value).asJson))
         }
     }
   }

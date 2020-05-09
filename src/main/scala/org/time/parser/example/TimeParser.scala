@@ -7,8 +7,8 @@ import scala.util.parsing.combinator._
 object TimeParser extends JavaTokenParsers with PackratParsers {
   trait TimeComponent {}
   sealed trait TimeMode extends TimeComponent {
-    def regexString: String
-    def regex: Regex = regexString.r
+    def timeModeString: String
+    def regex: Regex = timeModeString.r
     def switch(): TimeMode = {
       if(this == AM){
         PM
@@ -32,14 +32,25 @@ object TimeParser extends JavaTokenParsers with PackratParsers {
   }
 
   object AM extends TimeMode {
-    override def regexString: String = "AM"
+    override def timeModeString: String = "AM"
   }
   object PM extends TimeMode {
-    override def regexString: String = "PM"
+    override def timeModeString: String = "PM"
   }
 
   case class BaseTime(hour: Hour, minute: Minute)
   case class ActualTime(baseTime: BaseTime, timeMode: TimeMode)
+  object ActualTime {
+    def serialize(actualTime: ActualTime): String = {
+      val hour = actualTime.baseTime.hour.hour.toString
+      val mins = actualTime.baseTime.minute.min match {
+        case x if x < 10 => s"0$x"
+        case x => x.toString
+      }
+      val mode = actualTime.timeMode.timeModeString
+      s"$hour:$mins $mode"
+    }
+  }
 
   lazy val baseHourParser: PackratParser[Hour] = (Hour.startingHourRegex ~ Hour.trailingHourRegex | Hour.singleHourRegex) ^^ {
     case leadingNum ~ trailingNum => Hour(s"$leadingNum$trailingNum".toInt)
@@ -54,8 +65,8 @@ object TimeParser extends JavaTokenParsers with PackratParsers {
     case h ~ _ ~ m => BaseTime(h, m)
   }
   lazy val timeModeParser: PackratParser[TimeMode] = (PM.regex | AM.regex) ^^ {
-    case x if x.matches(PM.regexString) => PM
-    case x if x.matches(AM.regexString) => AM
+    case x if x.matches(PM.timeModeString) => PM
+    case x if x.matches(AM.timeModeString) => AM
   }
   lazy val actualTimeParser: PackratParser[ActualTime] = (baseTimeParser ~ timeModeParser) ^^ {
     case baseTime ~ timeMode => ActualTime(baseTime, timeMode)
@@ -72,8 +83,21 @@ object TimeParser extends JavaTokenParsers with PackratParsers {
       }
     }
   }
-  def addMinutes(timeString: String, minutes: Int): Try[ActualTime] = {
+  def addMinutesToActualTime(timeString: String, minutes: Int): Try[ActualTime] = {
     parseTimeString(timeString).map {time => addMinutesHelper(time, minutes)}
+  }
+
+  /**
+   *
+   * @param timeString formatted like "[H]H:MM {AM|PM}"
+   * @param minutes is number of minutes to add to the time
+   * @return time formatted as "[H]H:MM {AM|PM}" that represents the time with the given number of minutes added
+   */
+  def addMinutes(timeString: String, minutes: Int): String = {
+    addMinutesToActualTime(timeString, minutes) match {
+      case scala.util.Success(time) => ActualTime.serialize(time)
+      case scala.util.Failure(e) => throw e
+    }
   }
   def addMinutesHelper(actualTime: ActualTime, minutes: Int): ActualTime = {
     require(minutes >= 0)
