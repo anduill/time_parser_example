@@ -24,13 +24,15 @@ sbt run
 ### API Usage
 Simply hit the following endpoint (as in this example):
 ```bash
-http://127.0.0.1:8080/time/getTime?startingTime="9:13 AM"&mins=200
+http://127.0.0.1:8080/time?time=11:53%20AM&minutes=1240
 ```
-If a improperly formatted string is passed, the service will return a BAD_REQUEST code with
-the following error message:
+Note that this endpoint requires escaping the space (i.e. %20)
+If a improperly formatted string is passed, the service will return a BAD_REQUEST code with error message that
+should provide some clues to the problem.  For example, consider the following:
+```
+http://localhost:8080/time?time=11:63%20AM&minutes=1240
+```
+The response would be:
 ```json
-{
-    "message": "Parsing failure for unit string <BAD STRING>",
-    "exception": "No result when parsing failed"
-}
+{"message":"Parser Failure, total input 11:63 AM.  With error-message: string matching regex '[0-5]' expected but '6' found"}
 ```

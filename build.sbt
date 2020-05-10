@@ -5,7 +5,7 @@ scalaVersion := "2.12.11"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-Ypartial-unification")
 
-mainClass in Compile := Some("org.parser.combinator.example.StartServer")
+mainClass in Compile := Some("org.time.parser.example.StartServer")
 
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "24.0-jre",
