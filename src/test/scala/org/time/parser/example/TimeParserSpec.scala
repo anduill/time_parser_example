@@ -62,6 +62,21 @@ class TimeParserSpec extends FlatSpec with Matchers {
     val expectedTime = "9:31 AM"
     actualTime shouldBe expectedTime
   }
+  "adding negative day to 12:51 AM" should "not change" in {
+    val actualTime = TimeParser.addMinutes("12:51 AM", -1440)
+    val expectedTime = "12:51 AM"
+    actualTime shouldBe expectedTime
+  }
+  "adding negative day and a half to 12:51 AM" should "change timeMode" in {
+    val actualTime = TimeParser.addMinutes("12:51 AM", -2160)
+    val expectedTime = "12:51 PM"
+    actualTime shouldBe expectedTime
+  }
+  "adding negative day and a half(plus two mins) to 12:51 AM" should "change timeMode and time" in {
+    val actualTime = TimeParser.addMinutes("12:51 AM", -2162)
+    val expectedTime = "12:49 PM"
+    actualTime shouldBe expectedTime
+  }
   "time parsing 13:51 AM" should "fail" in {
     assertThrows[IllegalArgumentException](TimeParser.addMinutes("13:51 AM", 0))
   }
